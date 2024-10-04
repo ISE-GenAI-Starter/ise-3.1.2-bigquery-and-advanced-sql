@@ -26,8 +26,37 @@ def create_dataset(dataset_name):
   
 
 def create_table(table_name):
-  pass
-  print(f"Created Table: {table_name}")
+  schema = [
+    bigquery.SchemaField("name", "STRING", mode="REQUIRED"),
+    bigquery.SchemaField("animal_type", "STRING", mode="REQUIRED"),
+  ]
+  
+  table = bigquery.Table(table_name, schema=schema)
+  table = client.create_table(table)
+  print(
+      "Created table {}.{}.{}".format(table.project, table.dataset_id, table.table_id)
+  )
+
+def populate_table(table_name):
+  client.query(f'''
+INSERT INTO {table_name} (name, animal_type)
+VALUES ('rufus', 'dog'),
+('jupiter', 'cat'),
+('whiskers', 'cat'),
+('max', 'dog'),
+('buddy', 'dog'),
+('io', 'dog'),
+('mittens', 'cat'),
+('shadow', 'cat'),
+('lucky', 'rabbit'),
+('pepper', 'hamster'),
+('snowball', 'hamster'),
+('sweetie', 'guinea pig'),
+('kiwi', 'bird'),
+('coco', 'parrot'),
+('finny', 'fish'),
+('bubbles', 'fish')
+  ''')
 
 if __name__ == "__main__":
   if project_id is "<YOUR PROJECT ID>":
@@ -47,6 +76,9 @@ if __name__ == "__main__":
     print(f"Created a table called {table_name}")
   except google.api_core.exceptions.Conflict:
     print(f"A table called {table_name} already exists. Continuing...")
+
+  populate_table(table_name)
+  print(f"Populated {table_name} with data.")
 
   print("Done!")
     
