@@ -1,15 +1,21 @@
-import streamlit as st
+import os
 
+from google.api_core.exceptions import Conflict
 from google.cloud import bigquery
-from google.oauth2 import service_account
+
+# Load environment variables from `.env` file
+from dotenv import load_dotenv
+load_dotenv()
 
 # Set up credentials
-credentials = service_account.Credentials.from_service_account_info(st.secrets["gcp_service_account"])
-client = bigquery.Client(credentials=credentials)
+client = bigquery.Client()
 
 # Project ID
-# TODO: Replace this with your actual project ID!
-project_id = "<YOUR PROJECT ID>"
+project_id = os.environ.get("PROJECT_ID")
+
+if project_id is None:
+  print("Did you forget to create a .env file with a PROJECT_ID?")
+  exit(1)
 
 def create_dataset(dataset_name):
   # Construct a full Dataset object to send to the API.
@@ -59,22 +65,19 @@ VALUES ('rufus', 'dog'),
   ''')
 
 if __name__ == "__main__":
-  if project_id is "<YOUR PROJECT ID>":
-    raise AssertionError("You need to provide your project ID in the code!")
-
   dataset_name = f'{project_id}.test_dataset'
   table_name = f'{dataset_name}.test_table'
   
   try:
     create_dataset(dataset_name)
     print(f"Created a dataset called {dataset_name}")
-  except google.api_core.exceptions.Conflict:
+  except Conflict:
     print(f"A dataset called {dataset_name} already exists. Continuing...")
     
   try: 
     create_table(table_name)
     print(f"Created a table called {table_name}")
-  except google.api_core.exceptions.Conflict:
+  except Conflict:
     print(f"A table called {table_name} already exists. Continuing...")
 
   populate_table(table_name)
